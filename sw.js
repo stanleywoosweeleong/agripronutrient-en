@@ -1,4 +1,4 @@
-// AgriPro Notebook (EN) — PWA service worker
+// AgriPro PWA service worker
 //
 // Strategy:
 //   - Everything is same-origin (no CDN), so just cache-first the app shell.
@@ -6,18 +6,15 @@
 //     are logged but don't block activation. A partially-cached install still
 //     serves what it got; the rest fills in on first online navigation.
 //   - Navigation requests fall back to the cached index.html regardless of the
-//     exact URL the user visited (handles `/`, deep links, etc.).
+//     exact URL the user visited (handles `/`, `/agripro/`, deep links, etc.).
 //   - Bump CACHE_VERSION whenever any shipped file changes.
-//
-// Cache name uses "agriproen" to keep it separate from the Chinese version's
-// "agripro" cache, so both apps can be installed on the same browser without
-// stepping on each other.
 
-const CACHE_VERSION = 'agriproen-v2';
+const CACHE_VERSION = 'agripro-v4';
 const CACHE_NAME    = `${CACHE_VERSION}-shell`;
 
+// Everything the app needs to start. All same-origin, relative paths.
 const APP_SHELL = [
-  './',
+  './',                                    // root URL (covers `https://host/agripro/`)
   './index.html',
   './app.js',
   './manifest.webmanifest',
@@ -36,6 +33,7 @@ const APP_SHELL = [
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
+    // Non-atomic: log individual failures but never reject install.
     const results = await Promise.allSettled(
       APP_SHELL.map(async (url) => {
         const res = await fetch(url, { cache: 'reload' });
@@ -54,10 +52,10 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
+    // Drop old version caches
     const keys = await caches.keys();
     await Promise.all(
-      keys.filter(k => k !== CACHE_NAME && k.startsWith('agriproen-'))
-          .map(k => caches.delete(k))
+      keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
     );
     await self.clients.claim();
   })());
@@ -68,13 +66,16 @@ self.addEventListener('fetch', (event) => {
   if (req.method !== 'GET') return;
 
   const url = new URL(req.url);
-  if (url.origin !== self.location.origin) return;
+  if (url.origin !== self.location.origin) return; // ignore cross-origin
 
+  // Navigation requests (the user opening the app, deep links, refreshes) ->
+  // try network first (so updates are seen), fall back to cached index.html.
   if (req.mode === 'navigate') {
     event.respondWith(networkThenIndex(req));
     return;
   }
 
+  // Static assets -> cache-first.
   event.respondWith(cacheFirst(req));
 });
 
@@ -84,11 +85,13 @@ async function cacheFirst(req) {
   if (cached) return cached;
   try {
     const fresh = await fetch(req);
+    // Only cache successful, basic responses (same-origin success)
     if (fresh.ok && fresh.type === 'basic') {
       cache.put(req, fresh.clone()).catch(() => {});
     }
     return fresh;
   } catch (err) {
+    // Last resort for image/asset requests: nothing we can do.
     throw err;
   }
 }
@@ -97,15 +100,19 @@ async function networkThenIndex(req) {
   const cache = await caches.open(CACHE_NAME);
   try {
     const fresh = await fetch(req);
+    // Only refresh the cached shell entry when the response is good
     if (fresh.ok) cache.put('./index.html', fresh.clone()).catch(() => {});
     return fresh;
   } catch (_) {
+    // Offline -> serve cached index.html (or root) so the React app boots
     const cached = (await cache.match('./index.html')) || (await cache.match('./'));
     if (cached) return cached;
+    // Truly nothing — let the browser show its offline page
     return Response.error();
   }
 }
 
+// Allow the page to force the new SW to activate immediately.
 self.addEventListener('message', (event) => {
   if (event.data === 'SKIP_WAITING') self.skipWaiting();
 });

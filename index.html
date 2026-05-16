@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
-  <title>AgriPro Notebook</title>
-  <meta name="description" content="Agronomy notebook — nutrient deficiency, soil-pH interactions, tank-mix rules, smart fertilizer advisor." />
+  <title>AgriPro 农学笔记</title>
+  <meta name="description" content="Bilingual agronomy notebook — nutrient deficiency, soil-pH interactions, tank-mix rules, smart fertilizer advisor." />
 
   <!-- PWA core -->
   <link rel="manifest" href="manifest.webmanifest" />
@@ -64,7 +64,8 @@
     <div class="label">AgriPro</div>
     <noscript>
       <div style="margin-top:1.5rem;max-width:280px;text-align:center;font-size:.9rem;opacity:.9;">
-        This app requires JavaScript to run.
+        本应用需要启用 JavaScript 才能运行。<br>
+        This app requires JavaScript.
       </div>
     </noscript>
   </div>
@@ -104,6 +105,7 @@
       function showFatal(title, detail) {
         if (fatalShown || !splash) return;
         fatalShown = true;
+        // Inline styles so this works even when vendor/app.css failed to load.
         splash.style.cssText =
           'position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;' +
           'justify-content:center;gap:1rem;background:linear-gradient(180deg,#1c4c2f,#0f301e);' +
@@ -118,19 +120,22 @@
               detailHtml +
             '</div>' +
             '<div style="opacity:.75;font-size:.85rem;margin-top:1.1rem;">' +
-              'Refresh the page, or verify that all files are in the correct folders.' +
+              '请刷新页面重试，或检查所有文件是否在正确位置。<br>' +
+              'Refresh, or verify all files are in the correct folders.' +
             '</div>' +
           '</div>';
       }
 
-      // Catch every asset load failure (404, MIME mismatch, etc.) in the capture phase
+      // 2. Catch every asset load failure (404, MIME mismatch, etc.) immediately
+      //    by using the capture phase of `error` events on the window.
       window.addEventListener('error', function (e) {
         var el = e.target;
+        // Resource errors have a target that isn't `window`
         if (el && el !== window && (el.src || el.href)) {
           var url = el.src || el.href;
           failedAssets.push(url);
           showFatal(
-            'Asset failed to load',
+            '资源加载失败 / Asset failed to load',
             'Missing or unreachable file(s):\n  ' + failedAssets.join('\n  ') +
             '\n\nMost likely cause: the vendor/ subfolder was not preserved' +
             '\nwhen the files were downloaded or copied. Check that you have:' +
@@ -143,26 +148,31 @@
           );
           return;
         }
+        // Script-level runtime error (not a resource 404)
         var root = document.getElementById('root');
-        if (root && root.firstChild) return;
-        showFatal('Script error', (e.message || 'unknown') +
+        if (root && root.firstChild) return; // app already up
+        showFatal('脚本错误 / Script error', (e.message || 'unknown') +
                   (e.filename ? '\n  at ' + e.filename + ':' + (e.lineno || '?') : ''));
-      }, true);
+      }, /* capture = */ true);
 
+      // 3. Normal mount path
       window.addEventListener('agripro:mounted', function () {
         clearTimeout(safety);
         hide();
       }, { once: true });
 
+      // 4. Last-resort timeout for cases that produce no error event at all
+      //    (e.g. a script loads but its globals are wrong) — generous, 8s.
       var safety = setTimeout(function () {
         var root = document.getElementById('root');
         if (root && root.firstChild) { hide(); return; }
+        // Try to be specific about what went wrong
         var details = [];
         if (typeof window.React === 'undefined') details.push('window.React is undefined');
         if (typeof window.ReactDOM === 'undefined') details.push('window.ReactDOM is undefined');
         if (typeof window.LucideReact === 'undefined') details.push('window.LucideReact is undefined');
         if (!details.length) details.push('All globals are present but React did not mount.');
-        showFatal('Initialization timeout',
+        showFatal('应用初始化超时 / Init timeout',
                   details.join('\n') +
                   '\n\nCheck the browser DevTools Console for the underlying error.');
       }, 8000);
