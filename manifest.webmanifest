@@ -1,8 +1,8 @@
 {
-  "name": "AgriPro 农学笔记",
+  "name": "AgriPro Notebook",
   "short_name": "AgriPro",
-  "description": "Bilingual agronomy notebook — nutrient deficiency diagnosis, soil-pH interactions, tank-mix rules and smart fertilizer advisor.",
-  "lang": "zh-CN",
+  "description": "Agronomy notebook — nutrient deficiency diagnosis, soil-pH interactions, tank-mix rules and smart fertilizer advisor.",
+  "lang": "en",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
