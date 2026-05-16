@@ -3684,9 +3684,9 @@ const App = () => {
     return [];
   }, [mode, advisorState]);
   return /*#__PURE__*/React.createElement(ErrorBoundary, null, /*#__PURE__*/React.createElement("div", {
-    className: "min-h-screen bg-[#FDFCFB] font-sans pb-20"
+    className: "min-h-screen bg-[#FDFCFB] font-sans pb-20 pb-safe-bottom"
   }, /*#__PURE__*/React.createElement("nav", {
-    className: "bg-white/95 backdrop-blur-md sticky top-0 z-50 border-b border-stone-200 shadow-sm px-4 py-3"
+    className: "bg-white/95 backdrop-blur-md sticky top-0 z-50 border-b border-stone-200 shadow-sm nav-safe-pad"
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex flex-col md:flex-row justify-between items-center gap-3"
   }, /*#__PURE__*/React.createElement("div", {

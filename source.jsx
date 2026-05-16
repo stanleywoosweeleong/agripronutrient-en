@@ -2756,8 +2756,8 @@ const App = () => {
 
   return (
     <ErrorBoundary>
-    <div className="min-h-screen bg-[#FDFCFB] font-sans pb-20">
-      <nav className="bg-white/95 backdrop-blur-md sticky top-0 z-50 border-b border-stone-200 shadow-sm px-4 py-3">
+    <div className="min-h-screen bg-[#FDFCFB] font-sans pb-20 pb-safe-bottom">
+      <nav className="bg-white/95 backdrop-blur-md sticky top-0 z-50 border-b border-stone-200 shadow-sm nav-safe-pad">
         <div className="flex flex-col md:flex-row justify-between items-center gap-3">
           <div className="flex justify-between items-center w-full md:w-auto">
             <div className="flex items-center gap-3 shrink-0">

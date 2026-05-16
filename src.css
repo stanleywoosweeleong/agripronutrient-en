@@ -16,6 +16,33 @@ body {
   background: #fafaf9; /* stone-50, matches the app */
 }
 
+/* ------- iOS safe-area utilities -------
+   The notch / Dynamic Island / home indicator overlap content unless we
+   honor env(safe-area-inset-*). These act like Tailwind utilities so the
+   JSX can opt into them per-element.
+   - .pt-safe       extra top padding for the header (notch / Dynamic Island)
+   - .pb-safe-bottom  extra bottom padding for fixed bottoms (home indicator)
+   - .px-safe       horizontal padding for landscape (notch on the side)
+   On non-iOS / non-notched devices, env(safe-area-inset-*) evaluates to 0,
+   so these classes have no effect — no fallback needed.
+*/
+.pt-safe       { padding-top:    max(env(safe-area-inset-top),    0px); }
+.pb-safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 0px); }
+.pl-safe       { padding-left:   max(env(safe-area-inset-left),   0px); }
+.pr-safe       { padding-right:  max(env(safe-area-inset-right),  0px); }
+.px-safe       { padding-left:   max(env(safe-area-inset-left),   0px);
+                 padding-right:  max(env(safe-area-inset-right),  0px); }
+
+/* When .pt-safe is combined with an existing py-/pt- utility, we want the
+   safe-area inset to be ADDED to the design padding, not replace it. The
+   simplest robust pattern is a dedicated combo class used on the header. */
+.nav-safe-pad {
+  padding-top:    calc(0.75rem + env(safe-area-inset-top));    /* matches py-3 */
+  padding-left:   calc(1rem    + env(safe-area-inset-left));   /* matches px-4 */
+  padding-right:  calc(1rem    + env(safe-area-inset-right));
+  padding-bottom: 0.75rem;
+}
+
 /* ------- Initial loading splash ------- */
 .pwa-splash {
   position: fixed;

@@ -13,7 +13,7 @@
 // "agripro" cache, so both apps can be installed on the same browser without
 // stepping on each other.
 
-const CACHE_VERSION = 'agriproen-v1';
+const CACHE_VERSION = 'agriproen-v2';
 const CACHE_NAME    = `${CACHE_VERSION}-shell`;
 
 const APP_SHELL = [
